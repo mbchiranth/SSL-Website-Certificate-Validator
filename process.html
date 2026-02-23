@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Analyzing SSL</title>
+    <link rel="stylesheet" href="ssl.css">
+</head>
+
+<body>
+
+<div class="container">
+
+    <div class="hero">
+        <h1>Analyzing SSL Certificate</h1>
+        <p id="domainDisplay">Preparing...</p>
+        <button id="backBtn" class="back-btn">← Back to Home</button>
+
+        <!-- SECURITY SCORE -->
+        <div id="scoreSection" style="margin-top:20px; width:300px; cursor:pointer;">
+            <div style="background:#1f2937; border-radius:10px; overflow:hidden;">
+                <div id="scoreBar" style="
+                    height:18px;
+                    width:0%;
+                    background:#22c55e;
+                    transition:width 0.6s ease;">
+                </div>
+            </div>
+            <p id="scoreText" style="margin-top:8px; font-size:14px;">
+                Security Score: --
+            </p>
+        </div>
+    </div>
+
+    <!-- MAIN CARDS -->
+    <div class="cards">
+        <div class="card clickable">
+            <h3>Certificate Health</h3>
+            <p id="health" class="waiting">Checking...</p>
+        </div>
+
+        <div class="card clickable">
+            <h3>Certificate Grade</h3>
+            <p id="grade" class="waiting">Analyzing...</p>
+        </div>
+
+        <div class="card clickable">
+            <h3>Expiry Date</h3>
+            <p id="expiry" class="waiting">Fetching...</p>
+        </div>
+    </div>
+
+    <div class="cards" style="margin-top:30px;">
+        <div class="card clickable">
+            <h3>Issuer</h3>
+            <p id="issuer" class="waiting">Fetching...</p>
+        </div>
+
+        <div class="card clickable">
+            <h3>Issued Date</h3>
+            <p id="issued_on" class="waiting">Fetching...</p>
+        </div>
+
+        <div class="card clickable">
+            <h3>Certificate Type</h3>
+            <p id="cert_type" class="waiting">Fetching...</p>
+        </div>
+    </div>
+
+    <div class="cards" style="margin-top:30px;">
+        <div class="card clickable" style="width:100%; max-width:720px;">
+            <h3>Valid Domains (SANs)</h3>
+            <p id="valid_sans" class="waiting">Fetching...</p>
+        </div>
+    </div>
+
+</div>
+
+<!-- MODAL -->
+<div id="explanationModal" style="
+display:none;
+position:fixed;
+top:0;
+left:0;
+width:100%;
+height:100%;
+background:rgba(0,0,0,0.75);
+justify-content:center;
+align-items:center;
+z-index:9999;">
+
+    <div style="
+    background:#020617;
+    padding:30px;
+    border-radius:12px;
+    width:450px;
+    max-width:90%;
+    border:1px solid #1f2937;">
+
+        <h3 id="modalTitle"></h3>
+        <p id="modalContent" style="line-height:1.6;"></p>
+
+        <button onclick="closeModal()" class="back-btn" style="margin-top:15px;">
+            Close
+        </button>
+    </div>
+</div>
+
+<script>
+
+let lastData = null;
+
+function cleanDomain(input) {
+    return input.replace(/^https?:\/\//, "").replace(/\/.*$/, "").trim();
+}
+
+function setState(id, text, state) {
+    const el = document.getElementById(id);
+    if (el) {
+        el.innerText = text;
+        el.className = state;
+    }
+}
+
+function showExplanation(title, content) {
+    document.getElementById("modalTitle").innerText = title;
+    document.getElementById("modalContent").innerHTML = content;
+    document.getElementById("explanationModal").style.display = "flex";
+}
+
+function closeModal() {
+    document.getElementById("explanationModal").style.display = "none";
+}
+
+/* ================== SECURITY SCORE (Backend Driven) ================== */
+
+function renderSecurityScore(data) {
+
+    const score = data.security_score;
+    const daysLeft = data.days_remaining;
+
+    const bar = document.getElementById("scoreBar");
+    const text = document.getElementById("scoreText");
+
+    bar.style.width = score + "%";
+
+    if (score >= 80) bar.style.background = "#22c55e";
+    else if (score >= 50) bar.style.background = "#facc15";
+    else bar.style.background = "#f87171";
+
+    text.innerText = "Security Score: " + score + "/100";
+
+    document.getElementById("scoreSection").onclick = function () {
+
+        const insecureProtocols = data.vulnerabilities
+            .filter(v => !v.is_secure)
+            .map(v => v.name);
+
+        showExplanation("Overall Security Score",
+        `
+        Final Score: <b>${score}/100</b><br><br>
+        Days Remaining: ${daysLeft}<br>
+        Trusted Issuer: ${data.trusted_issuer ? "Yes" : "No"}<br>
+        Domain Match: ${data.domain_match ? "Valid" : "Mismatch"}<br>
+        Certificate Type: ${data.cert_type}<br><br>
+        Insecure Protocols: ${
+            insecureProtocols.length > 0
+            ? insecureProtocols.join(", ")
+            : "None detected"
+        }
+        `);
+    };
+}
+
+/* ================== FETCH SSL DATA ================== */
+
+function analyzeDomain(domain) {
+
+    fetch("http://127.0.0.1:5000/analyze", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ domain: domain })
+    })
+    .then(res => res.json())
+    .then(data => {
+
+        if (data.error) {
+            setState("health", "Error", "error");
+            return;
+        }
+
+        lastData = data;
+
+        setState("health", data.certificate_health, "success");
+        setState("grade", data.certificate_grade, "success");
+        setState("expiry", data.expiry_date, "success");
+        setState("issuer", data.issuer, "success");
+        setState("issued_on", data.issued_on, "success");
+        setState("cert_type", data.cert_type, "success");
+        setState("valid_sans",
+            data.valid_sans.length > 0
+            ? data.valid_sans.join(", ")
+            : "No SANs found",
+            data.valid_sans.length > 0 ? "success" : "error"
+        );
+
+        renderSecurityScore(data);
+        attachClickHandlers();
+    });
+}
+
+/* ================== REAL EXPLANATIONS ================== */
+
+function attachClickHandlers() {
+
+    document.getElementById("health").onclick = () =>
+        showExplanation("Certificate Health",
+        `
+        Status: <b>${lastData.certificate_health}</b><br><br>
+        Days Remaining: ${lastData.days_remaining}<br>
+        Domain Match: ${lastData.domain_match ? "Valid" : "Mismatch"}<br>
+        Trusted Issuer: ${lastData.trusted_issuer ? "Yes" : "No"}
+        `);
+
+    document.getElementById("grade").onclick = () =>
+        showExplanation("Certificate Grade",
+        `
+        Grade: <b>${lastData.certificate_grade}</b><br><br>
+        Derived from:<br>
+        • Expiry duration<br>
+        • Protocol security<br>
+        • Issuer trust level<br>
+        • Domain validation accuracy
+        `);
+
+    document.getElementById("expiry").onclick = () =>
+        showExplanation("Expiry Date",
+        `
+        Expires on: <b>${lastData.expiry_date}</b><br><br>
+        ${lastData.days_remaining} days remaining.
+        `);
+
+    document.getElementById("issuer").onclick = () =>
+        showExplanation("Issuer",
+        `
+        Certificate Authority: <b>${lastData.issuer}</b><br><br>
+        Trusted: ${lastData.trusted_issuer ? "Yes" : "No"}
+        `);
+
+    document.getElementById("issued_on").onclick = () =>
+        showExplanation("Issued Date",
+        `
+        Certificate became valid on: <b>${lastData.issued_on}</b>
+        `);
+
+    document.getElementById("cert_type").onclick = () =>
+        showExplanation("Certificate Type",
+        `
+        Type: <b>${lastData.cert_type}</b><br><br>
+        Determines level of identity verification performed.
+        `);
+
+    document.getElementById("valid_sans").onclick = () =>
+        showExplanation("Valid Domains (SANs)",
+        lastData.valid_sans.length > 0
+            ? lastData.valid_sans.join("<br>")
+            : "No SAN entries found."
+        );
+}
+
+/* ================== PAGE LOAD ================== */
+
+window.onload = function () {
+
+    const params = new URLSearchParams(window.location.search);
+    let domain = params.get("domain");
+
+    if (!domain) {
+        document.getElementById("domainDisplay").innerText = "No domain provided.";
+        return;
+    }
+
+    domain = cleanDomain(domain);
+    document.getElementById("domainDisplay").innerText = "Analyzing: " + domain;
+
+    analyzeDomain(domain);
+};
+
+document.getElementById("backBtn").addEventListener("click", function () {
+    window.location.href = "ssl.html";
+});
+
+</script>
+
+</body>
+</html>
