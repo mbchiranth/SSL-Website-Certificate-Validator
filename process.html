@@ -1,282 +1,465 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<title>Analyzing SSL</title>
-<link rel="stylesheet" href="ssl.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Analyzing SSL</title>
+  <link rel="stylesheet" href="ssl.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 </head>
-
 <body>
 
-<div class="container">
+  <!-- NAVBAR -->
+  <nav class="navbar">
+    <div class="logo">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2.2">
+        <path d="M12 2L4 6v6c0 5.25 3.5 10.15 8 11.35C16.5 22.15 20 17.25 20 12V6L12 2z"/>
+      </svg>
+      SSL SHIELD
+    </div>
+    <div class="status">
+      <span class="dot"></span>
+      SYSTEM ONLINE // SECURE
+    </div>
+    <div class="menu">
+      <a href="ssl.html">MONITOR</a>
+      <a href="ssl.html">ANALYZE</a>
+      <a href="#">API</a>
+    </div>
+  </nav>
 
-<div class="hero">
-<h1>Analyzing SSL Certificate</h1>
-<p id="domainDisplay">Preparing...</p>
+  <!-- MAIN WRAP -->
+  <div class="process-wrap">
 
-<button id="backBtn" class="back-btn">← Back to Home</button>
+    <h1 class="process-title">
+      <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2.2">
+        <path d="M12 2L4 6v6c0 5.25 3.5 10.15 8 11.35C16.5 22.15 20 17.25 20 12V6L12 2z"/>
+      </svg>
+      Analyzing SSL Certificate
+    </h1>
 
-<!-- SCANNING UI -->
-<div id="scanContainer">
+    <p id="domainDisplay">Preparing...</p>
+    <button id="backBtn" class="back-btn">← Back to Home</button>
 
-<div class="scan-loader">
-<div class="scan-ring"></div>
-<div class="scan-icon">🛡</div>
-</div>
+    <!-- SCAN ANIMATION -->
+    <div id="scanContainer">
+      <div class="spinner-wrap">
+        <div class="scan-ring"></div>
+        <div class="scan-loader"></div>
+        <div class="scan-icon">
+          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2.2">
+            <path d="M12 2L4 6v6c0 5.25 3.5 10.15 8 11.35C16.5 22.15 20 17.25 20 12V6L12 2z"/>
+          </svg>
+        </div>
+      </div>
+      <div class="scan-steps">
+        <div class="step active" id="step1">Establishing TLS connection...</div>
+        <div class="step"        id="step2">Fetching certificate transparency logs...</div>
+        <div class="step"        id="step3">Parsing certificate details...</div>
+        <div class="step"        id="step4">Running vulnerability analysis...</div>
+        <div class="step"        id="step5">Calculating security score...</div>
+      </div>
+    </div>
 
-<div class="scan-steps">
+    <!-- SECURITY SCORE -->
+    <div id="scoreSection" style="display:none;">
+      <div class="score-track">
+        <div id="scoreBar"></div>
+      </div>
+      <p id="scoreText">Security Score: <b>--</b></p>
+    </div>
 
-<div class="step active" id="step1">
-✔ Establishing TLS connection...
-</div>
+    <!-- RESULTS -->
+    <div id="resultsSection" style="display:none;">
+      <div class="cards">
+        <div class="card clickable" onclick="openModal('health')">
+          <h3>Certificate Health</h3>
+          <p id="health" class="waiting">Checking...</p>
+        </div>
+        <div class="card clickable" onclick="openModal('grade')">
+          <h3>Certificate Grade</h3>
+          <p id="grade" class="waiting">Analyzing...</p>
+        </div>
+        <div class="card clickable" onclick="openModal('expiry')">
+          <h3>Expiry Date</h3>
+          <p id="expiry" class="waiting">Fetching...</p>
+        </div>
+      </div>
+      <div class="cards" style="margin-top:16px;">
+        <div class="card clickable" onclick="openModal('issuer')">
+          <h3>Issuer</h3>
+          <p id="issuer" class="waiting">Fetching...</p>
+        </div>
+        <div class="card clickable" onclick="openModal('issued_on')">
+          <h3>Issued Date</h3>
+          <p id="issued_on" class="waiting">Fetching...</p>
+        </div>
+        <div class="card clickable" onclick="openModal('cert_type')">
+          <h3>Certificate Type</h3>
+          <p id="cert_type" class="waiting">Fetching...</p>
+        </div>
+      </div>
+      <div class="cards full" style="margin-top:16px;">
+        <div class="card clickable" onclick="openModal('valid_sans')">
+          <h3>Valid Domains (SANs)</h3>
+          <p id="valid_sans" class="waiting">Fetching...</p>
+        </div>
+      </div>
+    </div>
 
-<div class="step" id="step2">
-Fetching certificate transparency logs...
-</div>
+  </div>
 
-<div class="step" id="step3">
-Parsing certificate details...
-</div>
-
-<div class="step" id="step4">
-Running vulnerability analysis...
-</div>
-
-<div class="step" id="step5">
-Calculating security score...
-</div>
-
-</div>
-
-</div>
-
-
-<!-- SECURITY SCORE -->
-<div id="scoreSection" style="margin-top:20px;width:300px;cursor:pointer;display:none;">
-<div style="background:#1f2937;border-radius:10px;overflow:hidden;">
-<div id="scoreBar" style="height:18px;width:0%;background:#22c55e;transition:width 0.6s ease;"></div>
-</div>
-<p id="scoreText" style="margin-top:8px;font-size:14px;">Security Score: --</p>
-</div>
-
-</div>
-
-
-<!-- RESULTS -->
-<div id="resultsSection" style="display:none;">
-
-<div class="cards">
-
-<div class="card clickable">
-<h3>Certificate Health</h3>
-<p id="health" class="waiting">Checking...</p>
-</div>
-
-<div class="card clickable">
-<h3>Certificate Grade</h3>
-<p id="grade" class="waiting">Analyzing...</p>
-</div>
-
-<div class="card clickable">
-<h3>Expiry Date</h3>
-<p id="expiry" class="waiting">Fetching...</p>
-</div>
-
-</div>
-
-
-<div class="cards" style="margin-top:30px;">
-
-<div class="card clickable">
-<h3>Issuer</h3>
-<p id="issuer" class="waiting">Fetching...</p>
-</div>
-
-<div class="card clickable">
-<h3>Issued Date</h3>
-<p id="issued_on" class="waiting">Fetching...</p>
-</div>
-
-<div class="card clickable">
-<h3>Certificate Type</h3>
-<p id="cert_type" class="waiting">Fetching...</p>
-</div>
-
-</div>
-
-
-<div class="cards" style="margin-top:30px;">
-<div class="card clickable" style="width:100%;max-width:720px;">
-<h3>Valid Domains (SANs)</h3>
-<p id="valid_sans" class="waiting">Fetching...</p>
-</div>
-</div>
-
-</div>
-
-</div>
-
-
-<!-- MODAL -->
-<div id="explanationModal" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.75);justify-content:center;align-items:center;z-index:9999;">
-
-<div style="background:#020617;padding:30px;border-radius:12px;width:450px;max-width:90%;border:1px solid #1f2937;">
-
-<h3 id="modalTitle"></h3>
-<p id="modalContent" style="line-height:1.6;"></p>
-
-<button onclick="closeModal()" class="back-btn" style="margin-top:15px;">Close</button>
-
-</div>
-</div>
-
+  <!-- MODAL -->
+  <div id="explanationModal" onclick="handleModalClick(event)">
+    <div class="modal-box">
+      <div class="modal-header">
+        <h3 id="modalTitle"></h3>
+        <button class="modal-close-x" onclick="closeModal()">×</button>
+      </div>
+      <div id="modalBody"></div>
+      <button class="modal-close-btn" onclick="closeModal()">Close</button>
+    </div>
+  </div>
 
 <script>
+  let lastData = null;
 
-let lastData = null;
+  const CHECK_ICON = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2.5" style="flex-shrink:0"><circle cx="12" cy="12" r="10"/><polyline points="8,12 11,15 16,9"/></svg>`;
+  const SHIELD_SVG = `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2.2"><path d="M12 2L4 6v6c0 5.25 3.5 10.15 8 11.35C16.5 22.15 20 17.25 20 12V6L12 2z"/></svg>`;
 
+  function cleanDomain(input) {
+    return input.replace(/^https?:\/\//, "").replace(/\/.*$/, "").trim();
+  }
 
-/* SCAN ANIMATION */
+  function setState(id, text, state) {
+    const el = document.getElementById(id);
+    if (el) { el.innerText = text; el.className = state; }
+  }
 
-function runScanAnimation(callback){
+  /* ---- SCAN ANIMATION ---- */
+  function runScanAnimation(callback) {
+    const steps = ["step1","step2","step3","step4","step5"];
+    let i = 0;
+    function next() {
+      if (i > 0) {
+        document.getElementById(steps[i-1]).classList.remove("active");
+        document.getElementById(steps[i-1]).classList.add("done");
+      }
+      if (i < steps.length) {
+        document.getElementById(steps[i]).classList.add("active");
+        setTimeout(() => { i++; next(); }, 900);
+      } else {
+        document.getElementById("scanContainer").style.display = "none";
+        document.getElementById("resultsSection").style.display = "block";
+        document.getElementById("scoreSection").style.display = "block";
+        callback();
+      }
+    }
+    next();
+  }
 
-const steps=["step1","step2","step3","step4","step5"];
-let i=0;
+  /* ---- SECURITY SCORE ---- */
+  function renderSecurityScore(data) {
+    const score = data.security_score;
+    const bar   = document.getElementById("scoreBar");
+    const text  = document.getElementById("scoreText");
+    bar.style.width = score + "%";
+    if (score >= 80)      bar.style.background = "#22c55e";
+    else if (score >= 50) bar.style.background = "#facc15";
+    else                  bar.style.background = "#f87171";
+    text.innerHTML = "Security Score: <b>" + score + "/100</b>";
+  }
 
-function next(){
+  /* ---- ANALYZE ---- */
+  function analyzeDomain(domain) {
+    fetch("http://127.0.0.1:5000/analyze", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ domain: domain })
+    })
+    .then(res => res.json())
+    .then(data => {
+      lastData = data;
+      if (data.error) {
+        ["health","grade","expiry","issuer","issued_on","cert_type","valid_sans"]
+          .forEach(id => setState(id, data.error, "error"));
+        return;
+      }
+      setState("health",    data.certificate_health, "success");
+      setState("grade",     data.certificate_grade,  "success");
+      setState("expiry",    data.expiry_date,         "success");
+      setState("issuer",    data.issuer,              "success");
+      setState("issued_on", data.issued_on,           "success");
+      setState("cert_type", data.cert_type,           "success");
+      setState("valid_sans",
+        data.valid_sans.length > 0 ? data.valid_sans.join(", ") : "No SANs found",
+        data.valid_sans.length > 0 ? "success" : "error"
+      );
+      renderSecurityScore(data);
+    })
+    .catch(() => {
+      ["health","grade","expiry","issuer","issued_on","cert_type","valid_sans"]
+        .forEach(id => setState(id, "Backend not running", "error"));
+    });
+  }
 
-if(i>0){
-document.getElementById(steps[i-1]).classList.remove("active");
-document.getElementById(steps[i-1]).classList.add("done");
-}
+  /* ---- BUILD MODAL CONTENT FROM REAL DATA ---- */
+  function buildModalContent(key) {
+    if (!lastData) return "<p>No data available yet.</p>";
+    const d = lastData;
 
-if(i<steps.length){
+    function stepsHTML(steps) {
+      return steps.map((s, i) =>
+        `<div class="modal-step" style="animation-delay:${i*100}ms">${CHECK_ICON}<span>${s}</span></div>`
+      ).join("");
+    }
 
-document.getElementById(steps[i]).classList.add("active");
+    function findingBox(title, tag, desc) {
+      return `<div class="modal-finding">
+        <div class="modal-finding-title">${CHECK_ICON} ${title} <span class="modal-tag">${tag}</span></div>
+        <p>${desc}</p>
+      </div>`;
+    }
 
-setTimeout(()=>{
-i++;
-next();
-},900);
+    function resultsRow(count) {
+      return `<div class="modal-results-row">${CHECK_ICON} Results: ${count} Info</div>`;
+    }
 
-}else{
+    function badgeRow(label, value) {
+      return `<div class="modal-badge-row">
+        ${SHIELD_SVG}
+        <div><div class="modal-badge-label">${label}</div><div class="modal-badge-val">${value}</div></div>
+      </div>`;
+    }
 
-document.getElementById("scanContainer").style.display="none";
-document.getElementById("resultsSection").style.display="block";
-document.getElementById("scoreSection").style.display="block";
+    switch(key) {
 
-callback();
+      case "health": {
+        const steps = stepsHTML([
+          "Checking certificate expiration status…",
+          "Verifying domain name match…",
+          "Validating Certificate Authority trust…",
+          "Detecting self-signed certificates…",
+          "Checking chain of trust…"
+        ]);
+        const finding = d.certificate_health === "Active"
+          ? findingBox("No Issues Detected", "INFO", "No vulnerabilities or concerns were found for this aspect of the certificate.")
+          : findingBox("Issue Detected", "WARN", "Certificate health: " + d.certificate_health);
+        return badgeRow("CERTIFICATE HEALTH", d.certificate_health)
+          + `<div class="modal-section-label">VULNERABILITY SCAN</div>`
+          + `<div class="modal-steps">${steps}</div>`
+          + resultsRow(1)
+          + `<div class="modal-section-label">FINDINGS</div>` + finding;
+      }
 
-}
+      case "grade": {
+        const breakdown = d.score_breakdown || [];
+        const steps = stepsHTML([
+          "Evaluating expiration impact on grade…",
+          "Checking domain match compliance…",
+          "Assessing near-expiry penalty…",
+          "Analyzing issuer trust level…",
+          "Reviewing certificate type impact…"
+        ]);
+        const breakdownHTML = breakdown.map(b =>
+          findingBox(b, "INFO", "")
+        ).join("");
+        return badgeRow("CERTIFICATE GRADE", d.certificate_grade)
+          + `<div class="modal-section-label">VULNERABILITY SCAN</div>`
+          + `<div class="modal-steps">${steps}</div>`
+          + resultsRow(breakdown.length)
+          + `<div class="modal-section-label">FINDINGS</div>` + breakdownHTML;
+      }
 
-}
+      case "expiry": {
+        const days = d.days_remaining;
+        const urgency = days <= 0 ? "CRITICAL" : days < 30 ? "WARN" : "INFO";
+        const msg = days <= 0
+          ? "This certificate has already expired."
+          : days < 30
+            ? `Only ${days} days remaining. Renew immediately.`
+            : `Certificate is valid for ${days} more days.`;
+        const steps = stepsHTML([
+          "Calculating days remaining…",
+          "Checking near-expiry threshold…",
+          "Validating renewal schedule…"
+        ]);
+        return badgeRow("EXPIRY DATE", d.expiry_date)
+          + `<div class="modal-section-label">VULNERABILITY SCAN</div>`
+          + `<div class="modal-steps">${steps}</div>`
+          + resultsRow(1)
+          + `<div class="modal-section-label">FINDINGS</div>`
+          + findingBox(days <= 30 ? "Expiry Warning" : "Certificate Valid", urgency, msg);
+      }
 
-next();
+      case "issuer": {
+        const trusted = d.trusted_issuer;
+        const steps = stepsHTML([
+          "Verifying CA root trust…",
+          "Checking intermediate chain…",
+          "Validating revocation status…"
+        ]);
+        const finding = trusted
+          ? findingBox("Trusted Issuer", "INFO", `${d.issuer} is a recognized and trusted Certificate Authority.`)
+          : findingBox("Untrusted Issuer", "WARN", `${d.issuer} is not in the trusted CA list. This may reduce trust.`);
+        return badgeRow("ISSUER", d.issuer)
+          + `<div class="modal-section-label">VULNERABILITY SCAN</div>`
+          + `<div class="modal-steps">${steps}</div>`
+          + resultsRow(1)
+          + `<div class="modal-section-label">FINDINGS</div>` + finding;
+      }
 
-}
+      case "issued_on": {
+        return badgeRow("ISSUED DATE", d.issued_on)
+          + `<div class="modal-section-label">FINDINGS</div>`
+          + findingBox("Issue Date Recorded", "INFO", `This certificate was issued on ${d.issued_on}. Combined with the expiry date of ${d.expiry_date}, the total validity window can be calculated.`);
+      }
 
+      case "cert_type": {
+        const typeDesc = {
+          DV: "Domain Validation only verifies domain ownership. Basic trust level.",
+          OV: "OV certificates verify both domain ownership and organization identity. Good balance of trust and cost.",
+          EV: "Extended Validation provides the highest level of trust with full organization verification."
+        };
+        const steps = stepsHTML([
+          "Identifying validation level (DV/OV/EV)…",
+          "Evaluating organizational verification…",
+          "Checking identity assurance level…"
+        ]);
+        const typeTitle = { DV: "Domain Validated", OV: "Organization Validated", EV: "Extended Validated" };
+        return badgeRow("CERTIFICATE TYPE", d.cert_type)
+          + `<div class="modal-section-label">VULNERABILITY SCAN</div>`
+          + `<div class="modal-steps">${steps}</div>`
+          + resultsRow(1)
+          + `<div class="modal-section-label">FINDINGS</div>`
+          + findingBox(typeTitle[d.cert_type] || d.cert_type, "INFO", typeDesc[d.cert_type] || "");
+      }
 
-/* CLEAN DOMAIN */
+      case "valid_sans": {
+        const sans = d.valid_sans || [];
+        const hasWildcard = sans.some(s => s.startsWith("*"));
+        const domain = cleanDomain(new URLSearchParams(window.location.search).get("domain") || "");
+        const hasWww = sans.some(s => s === "www." + domain);
+        const steps = stepsHTML([
+          "Verifying domain is in SANs list…",
+          "Scanning for wildcard certificates…",
+          "Checking SAN count for shared hosting risk…",
+          "Verifying www variant coverage…"
+        ]);
+        let findings = "";
+        let count = 0;
+        if (hasWildcard) {
+          findings += findingBox("Wildcard Certificate", "INFO",
+            `This certificate uses wildcard entries. Wildcards cover all subdomains of a domain but do not cover the base domain itself in all implementations.`);
+          count++;
+        }
+        if (!hasWww) {
+          findings += findingBox("Missing www Variant", "INFO",
+            `The certificate covers "${domain}" but not "www.${domain}". Users accessing the www version may see warnings.`);
+          count++;
+        }
+        if (count === 0) {
+          findings = findingBox("No Issues Detected", "INFO", "All domain variants are properly covered by this certificate.");
+          count = 1;
+        }
+        return badgeRow("VALID DOMAINS (SANS)", sans.join(", ") || "None")
+          + `<div class="modal-section-label">VULNERABILITY SCAN</div>`
+          + `<div class="modal-steps">${steps}</div>`
+          + resultsRow(count)
+          + `<div class="modal-section-label">FINDINGS</div>` + findings;
+      }
 
-function cleanDomain(input){
-return input.replace(/^https?:\/\//,"").replace(/\/.*$/,"").trim();
-}
+      default: return "<p>No data available.</p>";
+    }
+  }
 
+  /* ---- OPEN / CLOSE MODAL ---- */
+  const MODAL_TITLES = {
+    health:    "Certificate Health",
+    grade:     "Certificate Grade",
+    expiry:    "Expiry Date",
+    issuer:    "Certificate Issuer",
+    issued_on: "Issued Date",
+    cert_type: "Certificate Type",
+    valid_sans:"Valid Domains (SANs)"
+  };
 
-/* SET UI STATE */
+  function openModal(key) {
+    document.getElementById("modalTitle").innerText = MODAL_TITLES[key] || key;
+    document.getElementById("modalBody").innerHTML  = buildModalContent(key);
+    document.getElementById("explanationModal").classList.add("open");
+  }
 
-function setState(id,text,state){
-const el=document.getElementById(id);
-if(el){
-el.innerText=text;
-el.className=state;
-}
-}
+  function closeModal() {
+    document.getElementById("explanationModal").classList.remove("open");
+  }
 
+  function handleModalClick(e) {
+    if (e.target === document.getElementById("explanationModal")) closeModal();
+  }
 
-/* SECURITY SCORE */
+  /* ---- PAGE LOAD ---- */
+  window.onload = function () {
+    const params = new URLSearchParams(window.location.search);
+    let domain   = params.get("domain");
+    if (!domain) {
+      document.getElementById("domainDisplay").innerText = "No domain provided.";
+      return;
+    }
+    domain = cleanDomain(domain);
+    document.getElementById("domainDisplay").innerHTML = "Scanning: <span>" + domain + "</span>";
+    runScanAnimation(() => { analyzeDomain(domain); });
+  };
 
-function renderSecurityScore(data){
-
-const score=data.security_score;
-
-const bar=document.getElementById("scoreBar");
-const text=document.getElementById("scoreText");
-
-bar.style.width=score+"%";
-
-if(score>=80) bar.style.background="#22c55e";
-else if(score>=50) bar.style.background="#facc15";
-else bar.style.background="#f87171";
-
-text.innerText="Security Score: "+score+"/100";
-
-}
-
-
-/* ANALYZE DOMAIN */
-
-function analyzeDomain(domain){
-
-fetch("http://127.0.0.1:5000/analyze",{
-method:"POST",
-headers:{"Content-Type":"application/json"},
-body:JSON.stringify({domain:domain})
-})
-
-.then(res=>res.json())
-
-.then(data=>{
-
-lastData=data;
-
-setState("health",data.certificate_health,"success");
-setState("grade",data.certificate_grade,"success");
-setState("expiry",data.expiry_date,"success");
-setState("issuer",data.issuer,"success");
-setState("issued_on",data.issued_on,"success");
-setState("cert_type",data.cert_type,"success");
-
-setState("valid_sans",
-data.valid_sans.length>0?data.valid_sans.join(", "):"No SANs found",
-data.valid_sans.length>0?"success":"error");
-
-renderSecurityScore(data);
-
-});
-
-}
-
-
-/* PAGE LOAD */
-
-window.onload=function(){
-
-const params=new URLSearchParams(window.location.search);
-let domain=params.get("domain");
-
-if(!domain){
-document.getElementById("domainDisplay").innerText="No domain provided.";
-return;
-}
-
-domain=cleanDomain(domain);
-document.getElementById("domainDisplay").innerText="Scanning: "+domain;
-
-runScanAnimation(()=>{
-analyzeDomain(domain);
-});
-
-};
-
-
-/* BACK BUTTON */
-
-document.getElementById("backBtn").addEventListener("click",function(){
-window.location.href="ssl.html";
-});
-
+  document.getElementById("backBtn").addEventListener("click", function () {
+    window.location.href = "ssl.html";
+  });
 </script>
+
+<!-- MODAL EXTRA STYLES -->
+<style>
+  .modal-badge-row {
+    display: flex; align-items: center; gap: 12px;
+    padding: 14px 0; border-bottom: 1px solid #2a3138; margin-bottom: 18px;
+  }
+  .modal-badge-label {
+    font-family: 'JetBrains Mono', monospace; font-size: 10px;
+    letter-spacing: .12em; color: #5f6368; text-transform: uppercase; margin-bottom: 4px;
+  }
+  .modal-badge-val { font-size: 18px; font-weight: 700; color: #e8eaed; word-break: break-all; }
+  .modal-section-label {
+    font-family: 'JetBrains Mono', monospace; font-size: 10px;
+    letter-spacing: .12em; color: #5f6368; text-transform: uppercase; margin-bottom: 12px;
+  }
+  .modal-steps { display: flex; flex-direction: column; gap: 10px; margin-bottom: 18px; }
+  .modal-step {
+    display: flex; align-items: center; gap: 10px;
+    font-family: 'JetBrains Mono', monospace; font-size: 13px; color: #e8eaed;
+    animation: fadeIn .4s ease forwards; opacity: 0;
+  }
+  @keyframes fadeIn { to { opacity: 1; } }
+  .modal-results-row {
+    display: flex; align-items: center; gap: 8px;
+    border: 1px solid #2a3138; border-radius: 8px;
+    padding: 10px 14px; margin-bottom: 16px;
+    font-family: 'JetBrains Mono', monospace; font-size: 12px; color: #9aa0a6;
+  }
+  .modal-finding {
+    background: rgba(34,197,94,0.07); border: 1px solid rgba(34,197,94,0.2);
+    border-radius: 10px; padding: 14px; margin-bottom: 10px;
+  }
+  .modal-finding-title {
+    display: flex; align-items: center; gap: 8px;
+    font-size: 14px; font-weight: 600; color: #22c55e; margin-bottom: 6px;
+  }
+  .modal-finding p { font-size: 12px; color: #9aa0a6; line-height: 1.6; margin: 0; }
+  .modal-tag {
+    background: rgba(255,255,255,0.07); border-radius: 4px;
+    padding: 2px 7px; font-size: 10px; color: #9aa0a6;
+    font-family: 'JetBrains Mono', monospace; letter-spacing: .06em; font-weight: 500;
+  }
+</style>
 
 </body>
 </html>
