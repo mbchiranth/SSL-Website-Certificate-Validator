@@ -259,3 +259,71 @@ body {
     max-width: 90%;
     border: 1px solid rgba(148, 163, 184, 0.2);
 }
+/* ================= SCAN ANIMATION ================= */
+
+#scanContainer{
+    margin-top:60px;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:30px;
+}
+
+/* circular scanner */
+.scan-loader{
+    position:relative;
+    width:120px;
+    height:120px;
+    border-radius:50%;
+}
+
+.scan-ring{
+    position:absolute;
+    width:120px;
+    height:120px;
+    border-radius:50%;
+    border:6px solid rgba(34,197,94,0.15);
+    border-top:6px solid #22c55e;
+    animation:spin 1.2s linear infinite;
+}
+
+.scan-icon{
+    position:absolute;
+    inset:0;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:38px;
+    color:#22c55e;
+}
+
+/* spinning animation */
+
+@keyframes spin{
+    from{ transform:rotate(0deg); }
+    to{ transform:rotate(360deg); }
+}
+
+/* scan steps */
+
+.scan-steps{
+    margin-top:20px;
+    display:flex;
+    flex-direction:column;
+    gap:12px;
+    font-size:14px;
+}
+
+.step{
+    color:#64748b;
+    opacity:0.6;
+}
+
+.step.active{
+    color:#22c55e;
+    opacity:1;
+}
+
+.step.done{
+    color:#22c55e;
+}
