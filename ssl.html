@@ -1,74 +1,59 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>SSL Shield</title>
-<link rel="stylesheet" href="ssl.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SSL Shield</title>
+  <link rel="stylesheet" href="ssl.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 </head>
-
 <body>
 
-<div class="container">
-
-    <div class="navbar">
-        <div class="logo">
-            <img src="shield.png" alt="shield">
-            SSL SHIELD
-        </div>
-        <div class="status">SYSTEM ONLINE // SECURE</div>
-        <div class="menu">
-            <a href="#">MONITOR</a>
-            <a href="#">ANALYZE</a>
-            <a href="#">API</a>
-        </div>
+  <nav class="navbar">
+    <div class="logo">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2.2">
+        <path d="M12 2L4 6v6c0 5.25 3.5 10.15 8 11.35C16.5 22.15 20 17.25 20 12V6L12 2z"/>
+      </svg>
+      SSL SHIELD
     </div>
-
-    <div class="hero">
-        <h1>Secure Your <br> <span>Digital Assets</span></h1>
-        <p class="subtitle">
-          Comprehensive SSL certificate analysis and vulnerability scanning for modern infrastructure.
-        </p>
+    <div class="status">
+      <span class="dot"></span>
+      SYSTEM ONLINE // SECURE
     </div>
+    <div class="menu">
+      <a href="#">MONITOR</a>
+      <a href="#">ANALYZE</a>
+      <a href="#">API</a>
+    </div>
+  </nav>
 
+  <div class="hero">
+    <h1>Secure Your<br><span>Digital Assets</span></h1>
+    <p class="subtitle">Comprehensive SSL certificate analysis and vulnerability scanning for modern infrastructure.</p>
     <div class="search-box">
-        <input type="text" id="domain" placeholder="Enter domain (e.g., amazon.in)">
-        <button id="analyzeBtn">ANALYZE</button>
+      <input type="text" id="domain" placeholder="Enter domain (e.g., amazon.in)">
+      <button id="analyzeBtn">ANALYZE</button>
     </div>
+  </div>
 
-</div>
-
-<script>
-function cleanDomain(input) {
-    return input
-        .replace(/^https?:\/\//, "")
-        .replace(/\/.*$/, "")
-        .trim();
-}
-
-function redirectToProcess() {
-    let domain = document.getElementById("domain").value.trim();
-
-    if (!domain) {
-        alert("Enter a valid domain first.");
-        return;
+  <script>
+    function cleanDomain(input) {
+      return input.replace(/^https?:\/\//, "").replace(/\/.*$/, "").trim();
     }
 
-    domain = cleanDomain(domain);
-
-    window.location.href = "process.html?domain=" + encodeURIComponent(domain);
-}
-
-// Button click
-document.getElementById("analyzeBtn").addEventListener("click", redirectToProcess);
-
-// Enter key support
-document.getElementById("domain").addEventListener("keypress", function(e) {
-    if (e.key === "Enter") {
-        redirectToProcess();
+    function redirectToProcess() {
+      let domain = document.getElementById("domain").value.trim();
+      if (!domain) { alert("Enter a valid domain first."); return; }
+      domain = cleanDomain(domain);
+      window.location.href = "process.html?domain=" + encodeURIComponent(domain);
     }
-});
-</script>
+
+    document.getElementById("analyzeBtn").addEventListener("click", redirectToProcess);
+    document.getElementById("domain").addEventListener("keypress", function (e) {
+      if (e.key === "Enter") redirectToProcess();
+    });
+  </script>
 
 </body>
 </html>
